@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
     
 
       Pengguna::factory(10)->create();
+    
       Toko::factory(10)->create();
       Pelanggan::factory(10)->create();
       Produk::factory(10)->create();
