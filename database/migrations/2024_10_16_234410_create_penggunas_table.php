@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('email', 50)->unique();
             $table->string('username', 50)->unique();
             $table->string('password', 255);
-            $table->enum('role', ['super_admin', 'admin', 'cashier'])->default('super_admin');
+            $table->enum('role', ['super_user', 'admin', 'cashier'])->default('super_user');
             $table->timestamps();
             $table->softDeletes();
         });
