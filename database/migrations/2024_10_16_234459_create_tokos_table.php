@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('toko', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100)->nullable(false);
-            $table->text('address')->nullable();
-            $table->unsignedBigInteger('owner_id');
+            $table->string('nama_toko', 100)->nullable(false);
+            $table->text('alamat_toko')->nullable(false);
+            $table->string('telepon_toko', 15)->nullable();
+            $table->unsignedBigInteger('id_pengguna')->unique()->nullable(false);
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('owner_id')->references('id')->on('pengguna');
-        });
+            $table->foreign('id_pengguna')->references('id')->on('pengguna')->onDelete('cascade');        });
     }
 
     /**

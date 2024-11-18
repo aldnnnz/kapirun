@@ -12,18 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transaksi', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('customer_id');
-            $table->unsignedBigInteger('store_id');
-            $table->decimal('total_amount', 10, 2);
-            $table->decimal('tax_amount', 10, 2);
-            $table->decimal('final_amount', 10, 2);
-            $table->date('transaction_date');
+            $table->id('id');
+            $table->string('nomor_nota', 20)->unique();
+            $table->unsignedBigInteger('id_kasir');
+            $table->unsignedBigInteger('id_pelanggan')->nullable();
+            $table->decimal('total', 10, 2);
+            $table->decimal('jumlah_bayar', 10, 2);
+            $table->decimal('kembalian', 10, 2);
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('customer_id')->references('id')->on('pelanggan');
-            $table->foreign('store_id')->references('id')->on('toko');
-        });
+            $table->foreign('id_kasir')->references('id')->on('pengguna');
+            $table->foreign('id_pelanggan')->references('id')->on('pelanggan')->onDelete('set null');        });
     }
 
     /**
