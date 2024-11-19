@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('riwayat_stok', function (Blueprint $table) {
-            $table->id('id_riwayat');
+            $table->id('id');
             $table->foreignId('id_produk')->constrained('produk', 'id');
             $table->integer('perubahan_stok');
             $table->enum('tipe', ['masuk', 'keluar']);
