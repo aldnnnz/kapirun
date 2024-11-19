@@ -17,10 +17,12 @@ class PenggunaFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'nama' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            'username' => fake()->unique()->userName(),
             'password' => fake()->password(),
+            'no_hp' => fake()->phoneNumber(),
+            'referal_code' => fake()->unique()->regexify('[A-Za-z0-9]{10}'),
+            'jenis_pengguna' => fake()->randomElement(['admin', 'kasir', 'pembeli']),
         ];
     }
 }

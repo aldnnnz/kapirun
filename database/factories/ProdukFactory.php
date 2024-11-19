@@ -2,27 +2,23 @@
 
 namespace Database\Factories;
 
+use App\Models\Produk;
+use App\Models\Kategori;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Produk>
- */
 class ProdukFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition(): array
+    protected $model = Produk::class;
+
+    public function definition()
     {
         return [
-            'name' => $this->faker->word,
-            'description' => $this->faker->sentence,
-            'price' => $this->faker->randomFloat(3, 10, 1000),
-            'stock' => $this->faker->numberBetween(1, 100),
-            'store_id' => $this->faker->numberBetween(1, 10),
-            'category_id' => $this->faker->numberBetween(1, 6),
+            'barcode' => $this->faker->unique()->ean13(),
+            'nama_produk' => $this->faker->words(3, true),
+            'harga' => $this->faker->randomFloat(2, 1000, 1000000),
+            'stok' => $this->faker->numberBetween(0, 100),
+            'gambar' => $this->faker->imageUrl(),
+            'id_kategori' => Kategori::factory(),
         ];
     }
 }
