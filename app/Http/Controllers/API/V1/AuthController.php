@@ -1,60 +1,96 @@
 <?php
-
+// app/Http/Controllers/API/V1/AuthController.php
 namespace App\Http\Controllers\API\V1;
-
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Http\Controllers\API\V1\BaseController as BaseController;
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 use App\Models\Pengguna;
+use App\Models\Toko;
 use Illuminate\Support\Facades\Auth;
-use Validator;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use App\Helpers\ResponseFormatter;
+use App\Http\Resources\PenggunaResource;
+use Illuminate\Http\Request;
 
 
-class AuthController extends BaseController
+
+class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama' => 'required|string|max:255',
-            'email' => 'required|email',
-            'password' => 'required|min:6',
-            'no_hp' => 'required|string|max:255',
-            'jenis_pengguna' => Rule::in (['pembeli', 'admin', 'kasir']),
-            'referal_code' => 'string|max:5'
-        ]);
-    if($validator->fails()){
-            return $this->sendError('Validation Error.', $validator->errors());
-        }
-        $input = $request->all();
-        $input['password'] = bcrypt($input['password']);
-        $pengguna = Pengguna::create($input);
-        $success['token'] =  $pengguna->createToken('MyApp')->plainTextToken;
-        $success['nama'] =  $pengguna->nama;
-        return $this->sendResponse($success, 'User register successfully.');
-    }
-    public function login(Request $request)
-    {
-        if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-            $pengguna = Auth::user();
-            $success['token'] =  $pengguna->createToken('MyApp')->plainTextToken;
-            $success['nama'] =  $pengguna->nama;
-            $success['result'] = "berhasil";
+        DB::beginTransaction();
+        try {
+            // Create user
+            $user = Pengguna::create([
+                'nama' => $request->nama,
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'peran' => 'admin',
+                'id_toko' => null
+            ]);
 
-            return $this->sendResponse($success, 'User login successfully.');
-        }else{
-            return $this->sendError('Unauthorised.', ['error'=>'Unauthorised']);
+            // Create toko
+            $toko = Toko::create([
+                'nama_toko' => $request->nama_toko,
+                'alamat_toko' => $request->alamat_toko,
+                'id_admin' => $user->id
+            ]);
+
+            // Update user with toko
+            $user->update(['id_toko' => $toko->id]);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            DB::commit();
+            
+            return ResponseFormatter::success([
+                'user' => new PenggunaResource($user),
+                'token' => $token
+            ], 'Registration successful');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ResponseFormatter::error(null, $e->getMessage(), 500);
         }
     }
-    public function logout(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json(
-            [
-                'status' => 'success',
-                'message' => 'Berhasil Logout'
-            ]
-        );
+        try {
+            // Menentukan tipe login (email atau username)
+        $loginType = filter_var($request->login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
-    } 
+        // Mencari pengguna berdasarkan loginType
+        $user = Pengguna::where($loginType, $request->login)->first();
+
+        // Verifikasi apakah user ditemukan dan password cocok
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return ResponseFormatter::error(null, 'Invalid credentials', 401);
+        }
+
+        // Membuat token autentikasi
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        // Mengembalikan respons sukses
+        return ResponseFormatter::success([
+            'user' => new PenggunaResource($user),
+            'token' => $token
+        ], 'Login successful');
+
+    } catch (\Exception $e) {
+        return ResponseFormatter::error(null, $e->getMessage(), 500);}
+    }
+    // public function logout(Request $request)
+    // {
+    //     $request->user()->currentAccessToken()->delete();
+    //     return response()->json(
+    //         [
+    //             'status' => 'success',
+    //             'message' => 'Berhasil Logout'
+    //         ]
+    //     );
+
+    // } 
+    
 }

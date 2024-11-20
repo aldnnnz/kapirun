@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('username', 50)->unique();
             $table->string('password', 255);
             $table->enum('peran', ['admin', 'kasir']);
+            $table->unsignedBigInteger('id_toko')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

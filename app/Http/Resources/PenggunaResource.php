@@ -17,10 +17,9 @@ class PenggunaResource extends JsonResource
         return [
             'id' => $this->id,
             'nama' => $this->nama,
+            'username' => $this->username,
             'email' => $this->email,
             'no_hp' => $this->no_hp,
-            'referal_code' => $this->referal_code,
-            'jenis_pengguna' => $this->jenis_pengguna
         ];
     }
 }

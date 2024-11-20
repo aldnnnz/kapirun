@@ -13,9 +13,14 @@ return new class extends Migration
     {
         Schema::create('kategori', function (Blueprint $table) {
             $table->id();
-            $table->string('nama', 50);
+            $table->string('nama_kategori', 50);
+            $table->unsignedBigInteger('id_toko');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->foreign('id_toko')->references('id')->on('toko')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
         });
     }
 

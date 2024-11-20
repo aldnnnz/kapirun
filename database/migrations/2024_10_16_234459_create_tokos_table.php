@@ -16,10 +16,14 @@ return new class extends Migration
             $table->string('nama_toko', 100)->nullable(false);
             $table->text('alamat_toko')->nullable(false);
             $table->string('telepon_toko', 15)->nullable();
-            $table->unsignedBigInteger('id_pengguna')->unique()->nullable(false);
+            $table->unsignedBigInteger('id_admin')->unique()->nullable(false);
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('id_pengguna')->references('id')->on('pengguna')->onDelete('cascade');        });
+
+            $table->foreign('id_admin')->references('id')->on('pengguna')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
+        });
     }
 
     /**

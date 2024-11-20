@@ -19,8 +19,14 @@ return new class extends Migration
             $table->decimal('harga_satuan', 10, 2)->nullable(false);
             $table->timestamps();
             $table->softDeletes();
-            $table->foreign('id_transaksi')->references('id')->on('transaksi');
-            $table->foreign('id_produk')->references('id')->on('produk');        });
+
+            $table->foreign('id_transaksi')->references('id')->on('transaksi')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
+            $table->foreign('id_produk')->references('id')->on('produk')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
+        });
     }
 
     /**

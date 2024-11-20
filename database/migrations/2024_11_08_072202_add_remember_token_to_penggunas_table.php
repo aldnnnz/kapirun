@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('penggunas', function (Blueprint $table) {
+        Schema::table('pengguna', function (Blueprint $table) {
             //
             $table->rememberToken();
+            $table->foreign('id_toko')->references('id')->on('toko')
+                  ->onDelete('restrict')
+                  ->onUpdate('cascade');
         });
     }
 
@@ -22,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('penggunas', function (Blueprint $table) {
+        Schema::table('pengguna', function (Blueprint $table) {
             //
         });
     }
