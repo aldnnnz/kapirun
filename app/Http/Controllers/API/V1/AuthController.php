@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 
 
 
+
 class AuthController extends Controller
 {
     public function register(Request $request)
@@ -81,16 +82,24 @@ class AuthController extends Controller
     } catch (\Exception $e) {
         return ResponseFormatter::error(null, $e->getMessage(), 500);}
     }
-    // public function logout(Request $request)
-    // {
-    //     $request->user()->currentAccessToken()->delete();
-    //     return response()->json(
-    //         [
-    //             'status' => 'success',
-    //             'message' => 'Berhasil Logout'
-    //         ]
-    //     );
+    public function logout(Request $request)
+    {
+        try {
+            // Hapus token pengguna saat ini
+            $request->user()->currentAccessToken()->delete();
 
-    // } 
+            return response()->json([
+                'success' => true,
+                'message' => 'Logout successful',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Logout failed',
+            ], 500);
+        }
+        
+
+    } 
     
 }

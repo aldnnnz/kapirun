@@ -26,29 +26,29 @@ use App\Http\Controllers\API\V1\ProdukController;
 
     Route::prefix('v1')->group(function () {
         // Auth Routes
-        Route::post('register', [AuthController::class, 'register']);
-        Route::post('login', [AuthController::class, 'login']);
+        Route::post('register', [AuthController::class, 'register'])->name('register');
+        Route::post('login', [AuthController::class, 'login'])->name('login');
         
         // Protected Routes
-        // Route::middleware(['auth:sanctum'])->group(function () {
-        //     Route::post('logout', [AuthController::class, 'logout']);
+        Route::middleware(['auth:sanctum'])->group(function () {
+            Route::post('logout', [AuthController::class, 'logout'])->name('logout');
             
-        //     // Produk Routes
-        //     Route::apiResource('produk', ProdukController::class);
-        //     Route::post('produk/{id}/update-stok', [ProdukController::class, 'updateStok']);
+            // Produk Routes
+            // Route::apiResource('produk', ProdukController::class);
+            // Route::post('produk/{id}/update-stok', [ProdukController::class, 'updateStok']);
             
-        //     // Admin only routes
-        //     Route::middleware(['role:admin'])->group(function () {
-        //         Route::apiResource('pengguna', PenggunaController::class);
-        //         Route::get('laporan/harian', [LaporanController::class, 'harian']);
-        //         Route::get('laporan/bulanan', [LaporanController::class, 'bulanan']);
-        //         Route::get('laporan/tahunan', [LaporanController::class, 'tahunan']);
-        //     });
+            // // Admin only routes
+            // Route::middleware(['role:admin'])->group(function () {
+            //     Route::apiResource('pengguna', PenggunaController::class);
+            //     Route::get('laporan/harian', [LaporanController::class, 'harian']);
+            //     Route::get('laporan/bulanan', [LaporanController::class, 'bulanan']);
+            //     Route::get('laporan/tahunan', [LaporanController::class, 'tahunan']);
+            // });
             
-        //     Route::apiResource('kategori', KategoriController::class);
-        //     Route::apiResource('pelanggan', PelangganController::class);
-        //     Route::apiResource('transaksi', TransaksiController::class);
-        //     Route::get('riwayat-stok', [RiwayatStokController::class, 'index']);
-        // });
+            // Route::apiResource('kategori', KategoriController::class);
+            // Route::apiResource('pelanggan', PelangganController::class);
+            // Route::apiResource('transaksi', TransaksiController::class);
+            // Route::get('riwayat-stok', [RiwayatStokController::class, 'index']);
+        });
     });
 

@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Kategori;
+use App\Models\Toko;
 
 class Produk extends Model
 {
@@ -13,16 +15,22 @@ class Produk extends Model
     protected $table = 'produk';
 
     protected $fillable = [
-        'barcode',
+        'kode',
         'nama_produk',
         'harga',
         'stok',
         'gambar',
-        'id_kategori'
+        'id_kategori',
+        'id_toko'
     ];
 
     public function kategori()
     {
         return $this->belongsTo(Kategori::class, 'id_kategori');
+    }
+
+    public function toko()
+    {
+        return $this->belongsTo(Toko::class, 'id_toko');
     }
 }
