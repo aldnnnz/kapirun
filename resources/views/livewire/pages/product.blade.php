@@ -53,45 +53,33 @@
                         <div class="p-4">
                             <form wire:submit.prevent="saveProduct">
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Product Name</label>
-                                    <input type="text" wire:model="name" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" maxlength="100" required>
+                                    <label class="block text-sm font-medium text-gray-700">Kode</label>
+                                    <input type="text" wire:model="kode" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700">Nama Produk</label>
+                                    <input type="text" wire:model="nama_produk" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" maxlength="100" required>
                                 </div>
                                 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Price</label>
-                                    <input type="number" wire:model="price" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" step="0.01" required>
+                                    <label class="block text-sm font-medium text-gray-700">Harga</label>
+                                    <input type="number" wire:model="harga" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" min="0" required>
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Stock</label>
-                                    <input type="number" wire:model="stock" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                    <label class="block text-sm font-medium text-gray-700">Stok</label>
+                                    <input type="number" wire:model="stok" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" min="0" required>
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Image</label>
-                                    <input type="file" wire:model="image" class="mt-1 block w-full" accept="image/*" required>
+                                    <label class="block text-sm font-medium text-gray-700">Gambar</label>
+                                    <input type="file" wire:model="gambar" class="mt-1 block w-full rounded-xl" accept="image/*">
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Store</label>
-                                    <select wire:model="store_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                        <option value="">Select Store</option>
-                                        @php
-                                        $dummyStores = [
-                                            ['id' => 1, 'name' => 'Store A'],
-                                            ['id' => 2, 'name' => 'Store B'],
-                                            ['id' => 3, 'name' => 'Store C'],
-                                        ];
-                                        @endphp
-                                        @foreach($dummyStores as $store)
-                                            <option value="{{ $store['id'] }}">{{ $store['name'] }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700">Category</label>
-                                    <select wire:model="category_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <label class="block text-sm font-medium text-gray-700">Kategori</label>
+                                    <select wire:model="id_kategori" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select Category</option>
                                         @php
                                         $dummyCategories = [
@@ -106,12 +94,10 @@
                                     </select>
                                 </div>
 
-                                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700">
                                     Save Product
                                 </button>
-                            </form>
-                        </div>
-                    </div>
+                            </form>                        </div>                    </div>
                 </div>            </div>
         </div>    
     @endsection

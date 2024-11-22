@@ -2,82 +2,177 @@
 
 namespace App\Http\Controllers\API\V1;
 
-use App\Models\Produk;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 
+use App\Models\Produk;
+use App\Models\RiwayatStok;
+use App\Helpers\ResponseFormatter;
+use App\Http\Requests\StoreProdukRequest;
+use App\Http\Requests\UpdateProdukRequest;
+use App\Http\Resources\ProdukResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
 
 class ProdukController extends Controller
 {
-    // GET: Fetch all products
     public function index()
     {
-        // $produk = 
-        return Produk::all();
-        // return response()->json($produk);
+        $user = Auth::user();
+        $produk = Produk::with('kategori')
+            ->where('id_toko', $user->id_toko)
+            ->latest()
+            ->get();
+            
+        return ResponseFormatter::success(
+            ProdukResource::collection($produk),
+            'Data produk berhasil diambil'
+        );
     }
 
-    // POST: Add a new product
-    public function store(Request $request)
+    public function store(StoreProdukRequest $request)
     {
-        $validatedData = $request->validate([
-            'barcode' => 'required|string|max:50|unique:produk',
-            'nama_produk' => 'required|string|max:100',
-            'harga' => 'required|numeric|min:0',
-            'stok' => 'integer|min:0',
-            'gambar' => 'nullable|string|max:255',
-            'id_kategori' => 'nullable|exists:kategori,id',
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = Auth::user();
+            
+            // Handle gambar
+            $gambarPath = null;
+            if ($request->hasFile('gambar')) {
+                $gambarPath = $request->file('gambar')->store('produk', 'public');
+            }
 
-        $produk = Produk::create($validatedData);
+            // Simpan produk
+            $produk = Produk::create([
+                'kode' => $request->kode,
+                'nama_produk' => $request->nama_produk,
+                'harga' => $request->harga,
+                'stok' => $request->stok,
+                'gambar' => $gambarPath,
+                'id_kategori' => $request->id_kategori,
+                'id_toko' => $user->id_toko
+            ]);
 
-        return response()->json($produk, 201);
+            // Catat riwayat stok
+            if ($request->stok > 0) {
+                RiwayatStok::create([
+                    'id_produk' => $produk->id,
+                    'perubahan_stok' => $request->stok,
+                    'tipe' => 'masuk',
+                    'harga_satuan' => $request->harga,
+                    'id_pengguna' => $user->id,
+                    'id_toko' => $user->id_toko
+                ]);
+            }
+
+            DB::commit();
+            return ResponseFormatter::success(
+                new ProdukResource($produk),
+                'Produk berhasil ditambahkan'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ResponseFormatter::error(
+                null,
+                'Terjadi kesalahan: ' . $e->getMessage(),
+                500
+            );
+        }
     }
 
-    // GET: Fetch a single product by ID
     public function show($id)
     {
-        $produk = Produk::find($id);
-        if (!$produk) {
-            return response()->json(['message' => 'Product not found'], 404);
-        }
-
-        return response()->json($produk);
+        $user = Auth::user();
+        $produk = Produk::with(['kategori', 'riwayatStok'])
+            ->where('id_toko', $user->id_toko)
+            ->findOrFail($id);
+            
+        return ResponseFormatter::success(
+            new ProdukResource($produk),
+            'Detail produk berhasil diambil'
+        );
     }
 
-    // PUT/PATCH: Update a product
-    public function update(Request $request, $id)
+    public function update(UpdateProdukRequest $request, $id)
     {
-        $produk = Produk::find($id);
-        if (!$produk) {
-            return response()->json(['message' => 'Product not found'], 404);
+        DB::beginTransaction();
+        try {
+            $user = Auth::user();
+            $produk = Produk::where('id_toko', $user->id_toko)->findOrFail($id);
+            
+            // Hitung perubahan stok
+            $perubahanStok = $request->stok - $produk->stok;
+
+            // Handle gambar
+            if ($request->hasFile('gambar')) {
+                if ($produk->gambar) {
+                    Storage::disk('public')->delete($produk->gambar);
+                }
+                $gambarPath = $request->file('gambar')->store('produk', 'public');
+            } else {
+                $gambarPath = $produk->gambar;
+            }
+
+            // Update produk
+            $produk->update([
+                'nama_produk' => $request->nama_produk,
+                'harga' => $request->harga,
+                'stok' => $request->stok,
+                'gambar' => $gambarPath,
+                'id_kategori' => $request->id_kategori
+            ]);
+
+            // Catat riwayat stok jika ada perubahan
+            if ($perubahanStok != 0) {
+                RiwayatStok::create([
+                    'id_produk' => $produk->id,
+                    'perubahan_stok' => abs($perubahanStok),
+                    'tipe' => $perubahanStok > 0 ? 'masuk' : 'keluar',
+                    'harga_satuan' => $request->harga,
+                    'id_pengguna' => $user->id,
+                    'id_toko' => $user->id_toko
+                ]);
+            }
+
+            DB::commit();
+            return ResponseFormatter::success(
+                new ProdukResource($produk),
+                'Produk berhasil diperbarui'
+            );
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return ResponseFormatter::error(
+                null,
+                'Terjadi kesalahan: ' . $e->getMessage(),
+                500
+            );
         }
-
-        $validatedData = $request->validate([
-            'barcode' => 'string|max:50|unique:produk,barcode,' . $id,
-            'nama_produk' => 'string|max:100',
-            'harga' => 'numeric|min:0',
-            'stok' => 'integer|min:0',
-            'gambar' => 'nullable|string|max:255',
-            'id_kategori' => 'nullable|exists:kategori,id',
-        ]);
-
-        $produk->update($validatedData);
-
-        return response()->json($produk);
     }
 
-    // DELETE: Soft delete a product
     public function destroy($id)
     {
-        $produk = Produk::find($id);
-        if (!$produk) {
-            return response()->json(['message' => 'Product not found'], 404);
+        try {
+            $user = Auth::user();
+            $produk = Produk::where('id_toko', $user->id_toko)->findOrFail($id);
+
+            if ($produk->gambar) {
+                Storage::disk('public')->delete($produk->gambar);
+            }
+
+            $produk->delete();
+
+            return ResponseFormatter::success(
+                null,
+                'Produk berhasil dihapus'
+            );
+        } catch (\Exception $e) {
+            return ResponseFormatter::error(
+                null,
+                'Terjadi kesalahan: ' . $e->getMessage(),
+                500
+            );
         }
-
-        $produk->delete();
-
-        return response()->json(['message' => 'Product deleted successfully']);
     }
 }
-

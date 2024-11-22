@@ -34,8 +34,7 @@ use App\Http\Controllers\API\V1\ProdukController;
             Route::post('logout', [AuthController::class, 'logout'])->name('logout');
             
             // Produk Routes
-            // Route::apiResource('produk', ProdukController::class);
-            // Route::post('produk/{id}/update-stok', [ProdukController::class, 'updateStok']);
+            Route::apiResource('produk', ProdukController::class);
             
             // // Admin only routes
             // Route::middleware(['role:admin'])->group(function () {
