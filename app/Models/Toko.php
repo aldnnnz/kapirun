@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Pengguna;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\RiwayatStok;
+use App\Models\Transaksi;
 
 class Toko extends Model
 {
@@ -24,5 +26,17 @@ class Toko extends Model
 
     public function admin(){
         return $this->belongsTo(Pengguna::class, 'id_admin');
+    }
+    public function riwayatStok()
+    {
+        return $this-> hasMany(RiwayatStok::class, 'id_toko');
+    }
+    public function transaksi()
+    {
+        return $this->hasMany(Transaksi::class, 'id_toko');
+    }
+    public function pengguna()
+    {
+        return $this->hasOne(Pengguna::class, 'id_toko');
     }
 }

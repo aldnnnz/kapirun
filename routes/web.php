@@ -1,5 +1,5 @@
 <?php
-
+// routes/web.php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProdukController;
 // use App\Http\Livewire\Pages;
@@ -14,8 +14,12 @@ use App\Http\Middleware\EnsureAuthenticated;
 //     return view('welcome');
 // });
 // Route::resource('produk', ProdukController::class);
-Route::get('/login', App\Livewire\Auth\Login::class)->name('auth.login');
-Route::middleware(EnsureAuthenticated::class)->group(function() {
-    Route::get('/', App\Livewire\Pages\Home::class)->name('pages.home');
-});
-Route::get('/produk', App\Livewire\Pages\Product::class)->name('pages.product');
+Route::middleware(['web', 'guest'])->group(function() {
+    logger('Rute /login diakses');
+    Route::get('/login', App\Livewire\Auth\Login::class)->name('auth.login');
+    Route::get('/register', App\Livewire\Auth\Register::class)->name('auth.register');
+});// Route::middleware(EnsureAuthenticated::class)->group(function() {
+//     Route::get('/', App\Livewire\Pages\Home::class)->name('pages.home');
+// });
+Route::get('/product', App\Livewire\Pages\Product::class)->name('pages.product');
+Route::get('/', App\Livewire\Pages\Home::class)->name('pages.home');

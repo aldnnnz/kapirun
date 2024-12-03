@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Kategori;
 use App\Models\Toko;
+use App\Models\RiwaiwayatStok;
 
 class Produk extends Model
 {
@@ -32,5 +33,9 @@ class Produk extends Model
     public function toko()
     {
         return $this->belongsTo(Toko::class, 'id_toko');
+    }
+    public function riwayatStok()
+    {
+        return $this->hasMany(RiwayatStok::class, 'id_produk');
     }
 }

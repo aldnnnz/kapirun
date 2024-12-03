@@ -1,51 +1,56 @@
 <?php
-
+// app/Livewire/Auth/Login.php
 namespace App\Livewire\Auth;
 
 use Livewire\Component;
-use Illuminate\Support\Facades\Http;
+use App\Services\AuthServices;
 use Illuminate\Support\Facades\Session;
+use Livewire\Redirector;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Pengguna;
 
 class Login extends Component
 {
-    public $login = '';
-    public $password = '';
+    public $login, $password;
+
+    protected $rules = [
+        'login' => 'required', 
+        'password' => 'required|min:6',
+    ];
 
     public function login()
     {
-        $this->validate([
-            'login' => 'required',
-            'password' => 'required',
-        ]);
+        logger('Validasi dimulai');
+        $this->validate();
+        logger('Validasi selesai');
 
-        $response = Http::post('http://127.0.0.1:8000/api/v1/login', [
-            'login' => $this->login,
-            'password' => $this->password,
-        ]);
-
-        if ($response->successful()) {
-            $responseBody = $response->json();
-
-            // Cek status meta success
-            if ($responseBody['meta']['success']) {
-                // Simpan token dan user info di session
-                Session::put('token', $responseBody['data']['token']);
-                Session::put('user', $responseBody['data']['user']);
-
-                // Redirect ke halaman utama
-                return redirect()->route('home');
+        // Coba login dengan email atau username
+        $user = filter_var($this->login, FILTER_VALIDATE_EMAIL)
+            ? Pengguna::where('email', $this->login)->first()
+            : Pengguna::where('username', $this->login)->first();
+            logger('User ditemukan: ' . ($user ? $user->email : 'Tidak ada'));
+            if ($user && Auth::attempt(['email' => $user->email, 'password' => $this->password])) {
+                logger('Login berhasil');
+                session()->regenerate();
+                return redirect()->route('pages.home');
+            } else {
+                logger('Login gagal: ' . ($user ? 'Password salah' : 'User tidak ditemukan'));
             }
+            
 
-            // Jika gagal, tampilkan pesan error
-            $this->addError('login', $responseBody['meta']['message']);
-        } else {
-            $this->addError('login', 'Terjadi kesalahan pada server. Coba lagi nanti.');
-        }
+        session()->flash('error', 'Email/Username atau password salah.');
+        return null;
     }
+    public function testDebug()
+{
+    logger('Metode testDebug Livewire berhasil dipanggil');
+}
 
     public function render()
     {
+        logger('Komponen Livewire Login dirender');
         return view('livewire.auth.login')
-            ->layout('layouts.auth');
+            ->extends('layouts.auth')
+            ->section('content');
     }
 }

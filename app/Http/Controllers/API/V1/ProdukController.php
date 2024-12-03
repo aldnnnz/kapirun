@@ -100,7 +100,7 @@ class ProdukController extends Controller
         try {
             $user = Auth::user();
             $produk = Produk::where('id_toko', $user->id_toko)->findOrFail($id);
-            
+            \Log::info('Update Produk Request Data:', $request->all());
             // Hitung perubahan stok
             $perubahanStok = $request->stok - $produk->stok;
 
@@ -116,6 +116,7 @@ class ProdukController extends Controller
 
             // Update produk
             $produk->update([
+                'kode' => $request->kode,
                 'nama_produk' => $request->nama_produk,
                 'harga' => $request->harga,
                 'stok' => $request->stok,
@@ -127,6 +128,7 @@ class ProdukController extends Controller
             if ($perubahanStok != 0) {
                 RiwayatStok::create([
                     'id_produk' => $produk->id,
+
                     'perubahan_stok' => abs($perubahanStok),
                     'tipe' => $perubahanStok > 0 ? 'masuk' : 'keluar',
                     'harga_satuan' => $request->harga,
@@ -143,6 +145,7 @@ class ProdukController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error Pembaruan: ', ['message' => $e->getMessage(), 'request' => $request->all()]);
             return ResponseFormatter::error(
                 null,
                 'Terjadi kesalahan: ' . $e->getMessage(),
