@@ -8,42 +8,49 @@ use Illuminate\Support\Facades\Session;
 use Livewire\Redirector;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Pengguna;
+use App\Models\Toko;
+use Illuminate\Support\Facades\Hash;
 
 class Login extends Component
 {
-    public $login, $password;
+    public $username, $password, $remember = false;
 
     protected $rules = [
-        'login' => 'required', 
+        'username' => 'required', 
         'password' => 'required|min:6',
     ];
 
     public function login()
-    {
-        logger('Validasi dimulai');
-        $this->validate();
-        logger('Validasi selesai');
-
-        // Coba login dengan email atau username
-        $user = filter_var($this->login, FILTER_VALIDATE_EMAIL)
-            ? Pengguna::where('email', $this->login)->first()
-            : Pengguna::where('username', $this->login)->first();
-            logger('User ditemukan: ' . ($user ? $user->email : 'Tidak ada'));
-            if ($user && Auth::attempt(['email' => $user->email, 'password' => $this->password])) {
-                logger('Login berhasil');
-                session()->regenerate();
-                return redirect()->route('pages.home');
-            } else {
-                logger('Login gagal: ' . ($user ? 'Password salah' : 'User tidak ditemukan'));
-            }
-            
-
-        session()->flash('error', 'Email/Username atau password salah.');
-        return null;
-    }
-    public function testDebug()
 {
-    logger('Metode testDebug Livewire berhasil dipanggil');
+    logger('Metode login() dipanggil'); // Log pertama
+    
+    $this->validate();
+    logger('Validasi selesai'); // Log kedua
+
+    $user = Pengguna::where('username', $this->username)->first();
+    
+    logger('User ditemukan', ['user' => $user]); // Log ketiga
+
+    if ($user && Hash::check($this->password, $user->password)) {
+        logger('Login berhasil'); // Log keempat
+
+        Auth::login($user, $this->remember);
+        session()->regenerate();
+
+        // Atur session toko
+        if ($user->peran === 'admin') {
+            $toko = Toko::where('id_admin', $user->id)->first();
+            session(['id_toko' => $toko ? $toko->id : null]);
+        } elseif ($user->peran === 'kasir') {
+            session(['id_toko' => $user->id_toko]);
+        }
+
+        return redirect()->route('pages.product');
+    }
+
+    session()->flash('error', 'Username atau password salah.');
+    logger('Login gagal'); // Log kelima
+    return null;
 }
 
     public function render()

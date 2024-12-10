@@ -7,6 +7,7 @@ use App\Http\Controllers\API\V1\PenggunaController;
 use App\Http\Controllers\API\V1\AuthController;
 use App\Http\Controllers\API\V1\JenisPenggunaController;
 use App\Http\Controllers\API\V1\ProdukController;
+use App\Http\Controllers\API\V1\KategoriController;
 
 
 // Route::get('/user', function (Request $request) {
@@ -29,12 +30,14 @@ use App\Http\Controllers\API\V1\ProdukController;
         Route::post('register', [AuthController::class, 'register'])->name('register');
         Route::post('login', [AuthController::class, 'login'])->name('login');
         
+        
         // Protected Routes
         Route::middleware(['auth:sanctum'])->group(function () {
             Route::post('logout', [AuthController::class, 'logout'])->name('logout');
-            
-            // Produk Routes
+            Route::apiResource('kategori', KategoriController::class);
             Route::apiResource('produk', ProdukController::class);
+            // Produk Routes
+            
             
             // // Admin only routes
             // Route::middleware(['role:admin'])->group(function () {
@@ -49,5 +52,10 @@ use App\Http\Controllers\API\V1\ProdukController;
             // Route::apiResource('transaksi', TransaksiController::class);
             // Route::get('riwayat-stok', [RiwayatStokController::class, 'index']);
         });
+
+        Route::middleware(['auth:sanctum','can:admin'])->group(function () {
+            Route::apiResource('pengguna', PenggunaController::class);
+        });
+        
     });
 

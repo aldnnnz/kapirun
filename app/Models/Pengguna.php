@@ -8,6 +8,9 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Auth\Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
+
+
 
 class Pengguna extends Model implements AuthenticatableContract
 {
@@ -31,5 +34,18 @@ class Pengguna extends Model implements AuthenticatableContract
         'remember_token',
     ];
 
-    
+    public function toko()
+    {
+        return $this->belongsTo(Toko::class, 'id_toko');
+    }
+
+    public function transaksiKasir()
+    {
+        return $this->hasMany(Transaksi::class, 'id_kasir');
+    }
+
+    public function riwayatStok()
+    {
+        return $this->hasMany(RiwayatStok::class, 'id_pengguna');
+    }
 }

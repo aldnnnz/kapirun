@@ -3,71 +3,99 @@
 namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pengguna;
 use App\Http\Requests\StorePenggunaRequest;
 use App\Http\Requests\UpdatePenggunaRequest;
-use App\Models\Pengguna;
-use App\Http\Resources\PenggunaResource;
+use App\Helpers\ResponseFormatter;
+use Exception;
 
 class PenggunaController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return PenggunaResource::collection(Pengguna::all());
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Menyimpan pengguna baru
     public function store(StorePenggunaRequest $request)
     {
-        $pengguna = Pengguna::create($request->validated());
-        return PenggunaResource::make($pengguna);
+        $this->authorize('admin');
+        try {
+            // Membuat pengguna baru
+            $pengguna = Pengguna::create([
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'username' => $request->username,
+                'password' => bcrypt($request->password),  // Enkripsi password
+                'peran' => $request->peran,
+                'id_toko' => $request->id_toko,
+            ]);
+
+            // Mengembalikan respons sukses
+            return ResponseFormatter::success($pengguna, 'Pengguna berhasil dibuat', 201);
+
+        } catch (Exception $e) {
+            // Menangani error dan mengembalikan respons error
+            return ResponseFormatter::error($e->getMessage(), 500);
+        }
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Pengguna $pengguna)
+    // Memperbarui data pengguna
+    public function update(UpdatePenggunaRequest $request, $id)
     {
-        return PenggunaResource::make($pengguna);
+        $this->authorize('admin');
+        try {
+            // Menemukan pengguna berdasarkan ID
+            $pengguna = Pengguna::findOrFail($id);
+
+            // Update data pengguna
+            $pengguna->update([
+                'nama' => $request->nama ?? $pengguna->nama,
+                'email' => $request->email ?? $pengguna->email,
+                'username' => $request->username ?? $pengguna->username,
+                'password' => $request->password ? bcrypt($request->password) : $pengguna->password,
+                'peran' => $request->peran ?? $pengguna->peran,
+                'id_toko' => $request->id_toko ?? $pengguna->id_toko,
+            ]);
+
+            // Mengembalikan respons sukses
+            return ResponseFormatter::success($pengguna, 'Pengguna berhasil diperbarui');
+
+        } catch (Exception $e) {
+            // Menangani error dan mengembalikan respons error
+            return ResponseFormatter::error($e->getMessage(), 500);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Pengguna $pengguna)
+    // Menghapus pengguna
+    public function destroy($id)
     {
-        //
+        $this->authorize('admin');
+        try {
+            // Menemukan pengguna berdasarkan ID
+            $pengguna = Pengguna::findOrFail($id);
+            
+            // Menghapus pengguna
+            $pengguna->delete();
+
+            // Mengembalikan respons sukses
+            return ResponseFormatter::success(null, 'Pengguna berhasil dihapus');
+            
+        } catch (Exception $e) {
+            // Menangani error dan mengembalikan respons error
+            return ResponseFormatter::error($e->getMessage(), 500);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdatePenggunaRequest $request, Pengguna $pengguna)
+    // Menampilkan detail pengguna berdasarkan ID
+    public function show($id)
     {
-        $validatedData = $request->validated();
-        unset($validatedData['password']);
-        $pengguna->update($validatedData);
-        return PenggunaResource::make($pengguna);
-    }
+        $this->authorize('admin');
+        try {
+            // Menemukan pengguna berdasarkan ID
+            $pengguna = Pengguna::findOrFail($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Pengguna $pengguna)
-    {
-        $pengguna->delete();
-        return response()->json(['message' => 'Pengguna deleted successfully']);
+            // Mengembalikan respons sukses
+            return ResponseFormatter::success($pengguna, 'Detail pengguna berhasil diambil');
+
+        } catch (Exception $e) {
+            // Menangani error dan mengembalikan respons error
+            return ResponseFormatter::error($e->getMessage(), 500);
+        }
     }
 }

@@ -11,6 +11,8 @@ use App\Models\Pengguna;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\RiwayatStok;
 use App\Models\Transaksi;
+use App\Models\Kategori;
+
 
 class Toko extends Model
 {
@@ -38,5 +40,9 @@ class Toko extends Model
     public function pengguna()
     {
         return $this->hasOne(Pengguna::class, 'id_toko');
+    }
+    public function kategori()
+    {
+        return $this->hasMany(Kategori::class, 'id_toko');
     }
 }

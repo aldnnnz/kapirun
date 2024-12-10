@@ -29,5 +29,6 @@
       <p class="text-sm text-gray-600 text-center">© 2024 GajahTerbang Team | Empowering Your Digital Journey 🚀</p>
   </footer>    
   @livewireScripts
+
 </body>
 </html>

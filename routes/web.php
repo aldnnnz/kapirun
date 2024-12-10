@@ -21,5 +21,7 @@ Route::middleware(['web', 'guest'])->group(function() {
 });// Route::middleware(EnsureAuthenticated::class)->group(function() {
 //     Route::get('/', App\Livewire\Pages\Home::class)->name('pages.home');
 // });
-Route::get('/product', App\Livewire\Pages\Product::class)->name('pages.product');
-Route::get('/', App\Livewire\Pages\Home::class)->name('pages.home');
+Route::middleware('auth')->group(function() {
+    Route::get('/product', App\Livewire\Pages\Product::class)->name('pages.product');
+    Route::get('/pos', App\Livewire\Pages\Home::class)->name('pages.home');
+});
