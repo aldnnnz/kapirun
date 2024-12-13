@@ -7,6 +7,10 @@ use Livewire\WithFileUploads;
 use App\Models\Produk;
 use App\Models\Kategori;
 use App\Models\RiwayatStok;
+use App\Models\Toko;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class Product extends Component
@@ -61,6 +65,7 @@ class Product extends Component
 
             $produk = Produk::create($data);
 
+            // Create stock history for initial stock
             if ($this->stok > 0) {
                 RiwayatStok::create([
                     'id_produk' => $produk->id,
@@ -68,7 +73,8 @@ class Product extends Component
                     'tipe' => 'masuk',
                     'harga_satuan' => $this->harga,
                     'id_pengguna' => auth()->id(),
-                    'id_toko' => $this->id_toko
+                    'id_toko' => $this->id_toko,
+                    
                 ]);
             }
 
@@ -112,6 +118,9 @@ class Product extends Component
             ];
 
             if ($this->gambar) {
+                if ($produk->gambar) {
+                    Storage::disk('public')->delete($produk->gambar);
+                }
                 $data['gambar'] = $this->gambar->store('produk', 'public');
             }
 
@@ -140,33 +149,32 @@ class Product extends Component
 
     public function delete($id)
     {
+        DB::beginTransaction();
         try {
-            Produk::findOrFail($id)->delete();
+            $produk = Produk::findOrFail($id);
+            if ($produk->stok > 0) {
+                RiwayatStok::create([
+                    'id_produk' => $produk->id,
+                    'perubahan_stok' => $produk->stok,
+                    'tipe' => 'keluar',
+                    'harga_satuan' => $produk->harga,
+                    'id_pengguna' => auth()->id(),
+                    'id_toko' => $this->id_toko
+                ]);
+            }
+            if ($produk->gambar) {
+                Storage::disk('public')->delete($produk->gambar);
+            }
+            $produk->delete();
+            DB::commit();
             session()->flash('message', 'Produk berhasil dihapus.');
         } catch (\Exception $e) {
+            DB::rollBack();
             session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
         }
     }
 
-    public function saveCategory()
-    {
-        $this->validate([
-            'new_category_name' => 'required|string|max:50'
-        ]);
 
-        try {
-            $kategori = Kategori::create([
-                'nama_kategori' => $this->new_category_name,
-                'id_toko' => $this->id_toko
-            ]);
-
-            $this->id_kategori = $kategori->id;
-            $this->new_category_name = '';
-            session()->flash('message', 'Kategori berhasil ditambahkan.');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Terjadi kesalahan saat menambah kategori: ' . $e->getMessage());
-        }
-    }
 
     public function resetForm()
     {
@@ -192,6 +200,5 @@ class Product extends Component
             'products' => $products,
             'categories' => $categories,
         ])->layout('layouts.app');
-        ;
     }
 }

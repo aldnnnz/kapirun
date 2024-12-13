@@ -95,7 +95,8 @@ class KategoriController extends Controller
             return ResponseFormatter::success($kategori, 'Kategori berhasil diperbarui');
         } catch (\Exception $e) {
             return ResponseFormatter::error('Gagal memperbarui kategori', 500);
-        }    }
+        }
+    }
 
     /**
      * Remove the specified resource from storage.

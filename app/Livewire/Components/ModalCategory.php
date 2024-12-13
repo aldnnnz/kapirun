@@ -11,6 +11,8 @@ class ModalCategory extends Component
     public $id_kategori;
     public $new_category_name;
 
+    protected $listeners = ['refreshCategories' => '$refresh'];
+
     public function addNew()
     {
         $this->id_kategori = 'add_new';
@@ -29,6 +31,8 @@ class ModalCategory extends Component
 
         $this->reset(['id_kategori', 'new_category_name']);
         $this->dispatch('categoryAdded');
+        $this->dispatch('refreshCategories');
+        session()->flash('message', 'Category added successfully!');
     }
 
     public function cancelAddCategory()
