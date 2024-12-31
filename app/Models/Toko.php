@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\RiwayatStok;
 use App\Models\Transaksi;
 use App\Models\Kategori;
-
+                                
 
 class Toko extends Model
 {

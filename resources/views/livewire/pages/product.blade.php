@@ -65,7 +65,7 @@
                         <h4 class="text-xl font-semibold">{{ $isEdit ? 'Edit Product' : 'Add Product' }}</h4>
                     </div>
                     <div class="p-4">
-                        <form wire:submit.prevent="saveProduct">
+                        <form wire:submit="saveProduct">
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700">Kode</label>
                                 <input type="text" wire:model="kode" class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
@@ -116,13 +116,13 @@
 
                             <input type="hidden" wire:model="id_toko" value="{{ auth()->user()->id_toko }}">
 
-                            <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:loading.attr="disabled" wire:target="saveProduct,gambar" wire:loading.class="bg-blue-400">
+                            <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:loading.attr="disabled" wire:target="saveProduct" wire:loading.class="bg-blue-400">
                                 <span wire:loading.remove wire:target="saveProduct">{{ $isEdit ? 'Update Product' : 'Add Product' }}</span>
                                 <span wire:loading wire:target="saveProduct">Processing...</span>
                             </button>
 
                             <!-- Tambahan indikator submit -->
-                            <div class="mt-2">
+                            <!-- <div class="mt-2">
                                 <div wire:loading wire:target="saveProduct" class="text-center text-blue-500">
                                     <i class="fas fa-spinner fa-spin"></i> Submitting form...
                                 </div>
@@ -133,7 +133,7 @@
                                         </div>
                                     @endif
                                 </div>
-                            </div>
+                            </div> -->
                         </form>
                     </div>
                 </div>
