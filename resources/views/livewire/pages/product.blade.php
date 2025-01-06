@@ -1,5 +1,5 @@
 <div>
-    @section('content')
+    
     <div class="p-4 rounded-lg">
         <div>
             @if (session()->has('message'))
@@ -114,7 +114,8 @@
                                 </div>
                             </div>
 
-                            <input type="hidden" wire:model="id_toko" value="{{ auth()->user()->id_toko }}">
+                            <input type="hidden" wire:model="id_toko" value="{{ auth()->user()->id_toko }}" required>
+                            @error('id_toko') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
 
                             <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:loading.attr="disabled" wire:target="saveProduct" wire:loading.class="bg-blue-400">
                                 <span wire:loading.remove wire:target="saveProduct">{{ $isEdit ? 'Update Product' : 'Add Product' }}</span>
@@ -140,5 +141,4 @@
             </div>
         </div>
     </div>
-    @endsection 
 </div>

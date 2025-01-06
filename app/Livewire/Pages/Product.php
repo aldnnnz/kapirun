@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Product extends Component
 {
@@ -41,11 +42,23 @@ class Product extends Component
 
     public function mount()
     {
-        $this->id_toko = auth()->user()->id_toko;
+    $this->id_toko = auth()->user()->id_toko ?? 1; 
     }
 
     public function saveProduct()
     {
+        Log::info('Fungsi saveProduct dipanggil', [
+            'user_id' => auth()->id(),
+            'input_data' => [
+                'kode' => $this->kode,
+                'nama_produk' => $this->nama_produk,
+                'harga' => $this->harga,
+                'stok' => $this->stok,
+                'id_kategori' => $this->id_kategori,
+                'id_toko' => $this->id_toko,
+            ]
+        ]);
+
         $this->validate();
 
         DB::beginTransaction();
@@ -64,8 +77,13 @@ class Product extends Component
             }
 
             $produk = Produk::create($data);
+            Log::info('Produk baru ditambahkan', [
+                'user_id' => auth()->id(),
+                'toko_id' => $this->id_toko,
+                'produk_id' => $produk->id,
+                'data' => $data
+            ]);
 
-            // Create stock history for initial stock
             if ($this->stok > 0) {
                 RiwayatStok::create([
                     'id_produk' => $produk->id,
@@ -74,7 +92,11 @@ class Product extends Component
                     'harga_satuan' => $this->harga,
                     'id_pengguna' => auth()->id(),
                     'id_toko' => $this->id_toko,
-                    
+                ]);
+                Log::info('Riwayat stok awal ditambahkan', [
+                    'produk_id' => $produk->id,
+                    'stok' => $this->stok,
+                    'user_id' => auth()->id()
                 ]);
             }
 
@@ -83,98 +105,101 @@ class Product extends Component
             $this->resetForm();
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal menambahkan produk', [
+                'user_id' => auth()->id(),
+                'toko_id' => $this->id_toko,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-    }
+    }    
+    // public function edit($id)
+    // {
+    //     $this->isEdit = true;
+    //     $produk = Produk::findOrFail($id);
 
-    public function edit($id)
-    {
-        $this->isEdit = true;
-        $produk = Produk::findOrFail($id);
+    //     $this->produk_id = $id;
+    //     $this->kode = $produk->kode;
+    //     $this->nama_produk = $produk->nama_produk;
+    //     $this->harga = $produk->harga;
+    //     $this->stok = $produk->stok;
+    //     $this->id_kategori = $produk->id_kategori;
+    // }
 
-        $this->produk_id = $id;
-        $this->kode = $produk->kode;
-        $this->nama_produk = $produk->nama_produk;
-        $this->harga = $produk->harga;
-        $this->stok = $produk->stok;
-        $this->id_kategori = $produk->id_kategori;
-    }
+    // public function update()
+    // {
+    //     $this->validate();
 
-    public function update()
-    {
-        $this->validate();
+    //     DB::beginTransaction();
+    //     try {
+    //         $produk = Produk::findOrFail($this->produk_id);
+    //         $oldStok = $produk->stok;
 
-        DB::beginTransaction();
-        try {
-            $produk = Produk::findOrFail($this->produk_id);
-            $oldStok = $produk->stok;
+    //         $data = [
+    //             'kode' => $this->kode,
+    //             'nama_produk' => $this->nama_produk,
+    //             'harga' => $this->harga,
+    //             'stok' => $this->stok,
+    //             'id_kategori' => $this->id_kategori ?: null,
+    //         ];
 
-            $data = [
-                'kode' => $this->kode,
-                'nama_produk' => $this->nama_produk,
-                'harga' => $this->harga,
-                'stok' => $this->stok,
-                'id_kategori' => $this->id_kategori ?: null,
-            ];
+    //         if ($this->gambar) {
+    //             if ($produk->gambar) {
+    //                 Storage::disk('public')->delete($produk->gambar);
+    //             }
+    //             $data['gambar'] = $this->gambar->store('produk', 'public');
+    //         }
 
-            if ($this->gambar) {
-                if ($produk->gambar) {
-                    Storage::disk('public')->delete($produk->gambar);
-                }
-                $data['gambar'] = $this->gambar->store('produk', 'public');
-            }
+    //         $produk->update($data);
 
-            $produk->update($data);
+    //         if ($this->stok != $oldStok) {
+    //             $perubahan = $this->stok - $oldStok;
+    //             RiwayatStok::create([
+    //                 'id_produk' => $produk->id,
+    //                 'perubahan_stok' => abs($perubahan),
+    //                 'tipe' => $perubahan > 0 ? 'masuk' : 'keluar',
+    //                 'harga_satuan' => $this->harga,
+    //                 'id_pengguna' => auth()->id(),
+    //                 'id_toko' => $this->id_toko
+    //             ]);
+    //         }
 
-            if ($this->stok != $oldStok) {
-                $perubahan = $this->stok - $oldStok;
-                RiwayatStok::create([
-                    'id_produk' => $produk->id,
-                    'perubahan_stok' => abs($perubahan),
-                    'tipe' => $perubahan > 0 ? 'masuk' : 'keluar',
-                    'harga_satuan' => $this->harga,
-                    'id_pengguna' => auth()->id(),
-                    'id_toko' => $this->id_toko
-                ]);
-            }
+    //         DB::commit();
+    //         session()->flash('message', 'Produk berhasil diperbarui.');
+    //         $this->resetForm();
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+    //     }
+    // }
 
-            DB::commit();
-            session()->flash('message', 'Produk berhasil diperbarui.');
-            $this->resetForm();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
-
-    public function delete($id)
-    {
-        DB::beginTransaction();
-        try {
-            $produk = Produk::findOrFail($id);
-            if ($produk->stok > 0) {
-                RiwayatStok::create([
-                    'id_produk' => $produk->id,
-                    'perubahan_stok' => $produk->stok,
-                    'tipe' => 'keluar',
-                    'harga_satuan' => $produk->harga,
-                    'id_pengguna' => auth()->id(),
-                    'id_toko' => $this->id_toko
-                ]);
-            }
-            if ($produk->gambar) {
-                Storage::disk('public')->delete($produk->gambar);
-            }
-            $produk->delete();
-            DB::commit();
-            session()->flash('message', 'Produk berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollBack();
-            session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
-        }
-    }
-
-
+    // public function delete($id)
+    // {
+    //     DB::beginTransaction();
+    //     try {
+    //         $produk = Produk::findOrFail($id);
+    //         if ($produk->stok > 0) {
+    //             RiwayatStok::create([
+    //                 'id_produk' => $produk->id,
+    //                 'perubahan_stok' => $produk->stok,
+    //                 'tipe' => 'keluar',
+    //                 'harga_satuan' => $produk->harga,
+    //                 'id_pengguna' => auth()->id(),
+    //                 'id_toko' => $this->id_toko
+    //             ]);
+    //         }
+    //         if ($produk->gambar) {
+    //             Storage::disk('public')->delete($produk->gambar);
+    //         }
+    //         $produk->delete();
+    //         DB::commit();
+    //         session()->flash('message', 'Produk berhasil dihapus.');
+    //     } catch (\Exception $e) {
+    //         DB::rollBack();
+    //         session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
+    //     }
+    // }
 
     public function resetForm()
     {
