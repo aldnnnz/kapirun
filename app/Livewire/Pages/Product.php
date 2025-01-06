@@ -30,6 +30,8 @@ class Product extends Component
     public $isEdit = false;
     public $search;
     public $new_category_name;
+    public $showDeleteModal = false;
+    public $deleteId;
 
     // Validation Rules
     protected $rules = [
@@ -129,17 +131,17 @@ class Product extends Component
     public function update()
     {
         \Log::info('Attempting to update product', ['id' => $this->produk_id]);
-
+    
         try {
             $validated = $this->validate();
             \Log::info('Validation passed for update', $validated);
-
+    
             DB::beginTransaction();
-
+    
             // Ambil produk yang akan diupdate
             $produk = Produk::findOrFail($this->produk_id);
             $oldStok = $produk->stok;
-
+    
             // Data yang akan diupdate
             $data = [
                 'kode' => $this->kode,
@@ -148,7 +150,7 @@ class Product extends Component
                 'stok' => $this->stok,
                 'id_kategori' => $this->id_kategori ?: null,
             ];
-
+    
             // Handle upload gambar jika ada
             if ($this->gambar) {
                 if ($produk->gambar) {
@@ -156,10 +158,10 @@ class Product extends Component
                 }
                 $data['gambar'] = $this->gambar->store('produk', 'public'); // Simpan gambar baru
             }
-
+    
             // Update produk
             $produk->update($data);
-
+    
             // Catat perubahan stok jika ada
             if ($this->stok != $oldStok) {
                 $perubahan = $this->stok - $oldStok;
@@ -172,12 +174,12 @@ class Product extends Component
                     'id_toko' => $this->id_toko
                 ]);
             }
-
+    
             DB::commit();
             session()->flash('message', 'Produk berhasil diperbarui.');
             $this->resetForm();
             $this->dispatch('product-updated'); // Dispatch event jika diperlukan
-
+    
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error updating product', ['error' => $e->getMessage()]);
@@ -185,14 +187,20 @@ class Product extends Component
         }
     }
 
-    public function delete($id)
+    public function confirmDelete($id)
     {
-        \Log::info('Attempting to delete product', ['id' => $id]);
+        $this->deleteId = $id;
+        $this->showDeleteModal = true;
+    }
+
+    public function delete()
+    {
+        \Log::info('Attempting to delete product', ['id' => $this->deleteId]);
         
         try {
             DB::beginTransaction();
             
-            $produk = Produk::findOrFail($id);
+            $produk = Produk::findOrFail($this->deleteId);
             if ($produk->stok > 0) {
                 RiwayatStok::create([
                     'id_produk' => $produk->id,
@@ -211,6 +219,7 @@ class Product extends Component
             $produk->delete();
             DB::commit();
             
+            $this->showDeleteModal = false;
             session()->flash('message', 'Produk berhasil dihapus.');
             $this->dispatch('product-deleted');
             
@@ -220,6 +229,7 @@ class Product extends Component
             session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
         }
     }
+    
 
     public function resetForm()
     {
