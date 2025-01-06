@@ -1,4 +1,5 @@
 <?php
+// File: app/Livewire/Pages/Product.php
 
 namespace App\Livewire\Pages;
 
@@ -12,16 +13,16 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class Product extends Component
 {
     use WithFileUploads;
 
+    // Properties
     public $kode;
     public $nama_produk;
     public $harga;
-    public $stok = 0;
+    public $stok ;
     public $gambar;
     public $id_kategori;
     public $id_toko;
@@ -30,6 +31,7 @@ class Product extends Component
     public $search;
     public $new_category_name;
 
+    // Validation Rules
     protected $rules = [
         'kode' => 'required|string|max:50',
         'nama_produk' => 'required|string|max:100',
@@ -40,29 +42,37 @@ class Product extends Component
         'id_toko' => 'required|exists:toko,id'
     ];
 
+    // Lifecycle Hooks
     public function mount()
     {
-    $this->id_toko = auth()->user()->id_toko ?? 1; 
+        \Log::info('Component mounted');
+        $this->id_toko = auth()->user()->id_toko;
     }
 
+    public function updated($propertyName)
+    {
+        \Log::info('Property updated', ['property' => $propertyName]);
+        $this->validateOnly($propertyName);
+    }
+
+    // CRUD Operations
     public function saveProduct()
     {
-        Log::info('Fungsi saveProduct dipanggil', [
-            'user_id' => auth()->id(),
-            'input_data' => [
+        \Log::info('Attempting to save product', [
+            'data' => [ 
                 'kode' => $this->kode,
                 'nama_produk' => $this->nama_produk,
                 'harga' => $this->harga,
-                'stok' => $this->stok,
-                'id_kategori' => $this->id_kategori,
-                'id_toko' => $this->id_toko,
+                'stok' => $this->stok
             ]
-        ]);
+        ]); 
 
-        $this->validate();
-
-        DB::beginTransaction();
         try {
+            $validated = $this->validate();
+            \Log::info('Validation passed', $validated);
+
+            DB::beginTransaction();
+
             $data = [
                 'kode' => $this->kode,
                 'nama_produk' => $this->nama_produk,
@@ -77,12 +87,7 @@ class Product extends Component
             }
 
             $produk = Produk::create($data);
-            Log::info('Produk baru ditambahkan', [
-                'user_id' => auth()->id(),
-                'toko_id' => $this->id_toko,
-                'produk_id' => $produk->id,
-                'data' => $data
-            ]);
+            \Log::info('Product created', ['product_id' => $produk->id]);
 
             if ($this->stok > 0) {
                 RiwayatStok::create([
@@ -93,113 +98,128 @@ class Product extends Component
                     'id_pengguna' => auth()->id(),
                     'id_toko' => $this->id_toko,
                 ]);
-                Log::info('Riwayat stok awal ditambahkan', [
-                    'produk_id' => $produk->id,
-                    'stok' => $this->stok,
-                    'user_id' => auth()->id()
-                ]);
             }
 
             DB::commit();
             session()->flash('message', 'Produk berhasil ditambahkan.');
             $this->resetForm();
+            $this->dispatch('product-saved');
+
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Gagal menambahkan produk', [
-                'user_id' => auth()->id(),
-                'toko_id' => $this->id_toko,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            \Log::error('Error saving product', ['error' => $e->getMessage()]);
             session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
-    }    
-    // public function edit($id)
-    // {
-    //     $this->isEdit = true;
-    //     $produk = Produk::findOrFail($id);
+    }
 
-    //     $this->produk_id = $id;
-    //     $this->kode = $produk->kode;
-    //     $this->nama_produk = $produk->nama_produk;
-    //     $this->harga = $produk->harga;
-    //     $this->stok = $produk->stok;
-    //     $this->id_kategori = $produk->id_kategori;
-    // }
+    public function edit($id)
+    {
+        \Log::info('Editing product', ['id' => $id]);
+        $this->isEdit = true;
+        $produk = Produk::findOrFail($id);
 
-    // public function update()
-    // {
-    //     $this->validate();
+        $this->produk_id = $id;
+        $this->kode = $produk->kode;
+        $this->nama_produk = $produk->nama_produk;
+        $this->harga = $produk->harga;
+        $this->stok = $produk->stok;
+        $this->id_kategori = $produk->id_kategori;
+    }
 
-    //     DB::beginTransaction();
-    //     try {
-    //         $produk = Produk::findOrFail($this->produk_id);
-    //         $oldStok = $produk->stok;
+    public function update()
+    {
+        \Log::info('Attempting to update product', ['id' => $this->produk_id]);
 
-    //         $data = [
-    //             'kode' => $this->kode,
-    //             'nama_produk' => $this->nama_produk,
-    //             'harga' => $this->harga,
-    //             'stok' => $this->stok,
-    //             'id_kategori' => $this->id_kategori ?: null,
-    //         ];
+        try {
+            $validated = $this->validate();
+            \Log::info('Validation passed for update', $validated);
 
-    //         if ($this->gambar) {
-    //             if ($produk->gambar) {
-    //                 Storage::disk('public')->delete($produk->gambar);
-    //             }
-    //             $data['gambar'] = $this->gambar->store('produk', 'public');
-    //         }
+            DB::beginTransaction();
 
-    //         $produk->update($data);
+            // Ambil produk yang akan diupdate
+            $produk = Produk::findOrFail($this->produk_id);
+            $oldStok = $produk->stok;
 
-    //         if ($this->stok != $oldStok) {
-    //             $perubahan = $this->stok - $oldStok;
-    //             RiwayatStok::create([
-    //                 'id_produk' => $produk->id,
-    //                 'perubahan_stok' => abs($perubahan),
-    //                 'tipe' => $perubahan > 0 ? 'masuk' : 'keluar',
-    //                 'harga_satuan' => $this->harga,
-    //                 'id_pengguna' => auth()->id(),
-    //                 'id_toko' => $this->id_toko
-    //             ]);
-    //         }
+            // Data yang akan diupdate
+            $data = [
+                'kode' => $this->kode,
+                'nama_produk' => $this->nama_produk,
+                'harga' => $this->harga,
+                'stok' => $this->stok,
+                'id_kategori' => $this->id_kategori ?: null,
+            ];
 
-    //         DB::commit();
-    //         session()->flash('message', 'Produk berhasil diperbarui.');
-    //         $this->resetForm();
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
-    //     }
-    // }
+            // Handle upload gambar jika ada
+            if ($this->gambar) {
+                if ($produk->gambar) {
+                    Storage::disk('public')->delete($produk->gambar); // Hapus gambar lama
+                }
+                $data['gambar'] = $this->gambar->store('produk', 'public'); // Simpan gambar baru
+            }
 
-    // public function delete($id)
-    // {
-    //     DB::beginTransaction();
-    //     try {
-    //         $produk = Produk::findOrFail($id);
-    //         if ($produk->stok > 0) {
-    //             RiwayatStok::create([
-    //                 'id_produk' => $produk->id,
-    //                 'perubahan_stok' => $produk->stok,
-    //                 'tipe' => 'keluar',
-    //                 'harga_satuan' => $produk->harga,
-    //                 'id_pengguna' => auth()->id(),
-    //                 'id_toko' => $this->id_toko
-    //             ]);
-    //         }
-    //         if ($produk->gambar) {
-    //             Storage::disk('public')->delete($produk->gambar);
-    //         }
-    //         $produk->delete();
-    //         DB::commit();
-    //         session()->flash('message', 'Produk berhasil dihapus.');
-    //     } catch (\Exception $e) {
-    //         DB::rollBack();
-    //         session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
-    //     }
-    // }
+            // Update produk
+            $produk->update($data);
+
+            // Catat perubahan stok jika ada
+            if ($this->stok != $oldStok) {
+                $perubahan = $this->stok - $oldStok;
+                RiwayatStok::create([
+                    'id_produk' => $produk->id,
+                    'perubahan_stok' => abs($perubahan),
+                    'tipe' => $perubahan > 0 ? 'masuk' : 'keluar',
+                    'harga_satuan' => $this->harga,
+                    'id_pengguna' => auth()->id(),
+                    'id_toko' => $this->id_toko
+                ]);
+            }
+
+            DB::commit();
+            session()->flash('message', 'Produk berhasil diperbarui.');
+            $this->resetForm();
+            $this->dispatch('product-updated'); // Dispatch event jika diperlukan
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error updating product', ['error' => $e->getMessage()]);
+            session()->flash('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function delete($id)
+    {
+        \Log::info('Attempting to delete product', ['id' => $id]);
+        
+        try {
+            DB::beginTransaction();
+            
+            $produk = Produk::findOrFail($id);
+            if ($produk->stok > 0) {
+                RiwayatStok::create([
+                    'id_produk' => $produk->id,
+                    'perubahan_stok' => $produk->stok,
+                    'tipe' => 'keluar',
+                    'harga_satuan' => $produk->harga,
+                    'id_pengguna' => auth()->id(),
+                    'id_toko' => $this->id_toko
+                ]);
+            }
+            
+            if ($produk->gambar) {
+                Storage::disk('public')->delete($produk->gambar);
+            }
+            
+            $produk->delete();
+            DB::commit();
+            
+            session()->flash('message', 'Produk berhasil dihapus.');
+            $this->dispatch('product-deleted');
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error deleting product', ['error' => $e->getMessage()]);
+            session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
+        }
+    }
 
     public function resetForm()
     {
@@ -209,6 +229,8 @@ class Product extends Component
 
     public function render()
     {
+        \Log::info('Rendering product component');
+        
         $query = Produk::with(['kategori'])->where('id_toko', $this->id_toko);
 
         if ($this->search) {
