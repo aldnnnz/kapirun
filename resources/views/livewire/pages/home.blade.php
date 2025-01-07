@@ -2,7 +2,7 @@
     <div class="p-4 rounded-lg">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <!-- Left Column - Product List -->
-            <div class="lg:col-span-8">
+            <div class="lg:col-span-8 overflow-y-auto" style="max-height: 70vh;">
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-4 border-b">
                         <h4 class="text-xl font-semibold">Products</h4>
@@ -33,12 +33,12 @@
             </div>
 
             <!-- Right Column - Cart -->
-            <div class="lg:col-span-4">
-                <div class="bg-white rounded-lg shadow">
+            <div class="lg:col-span-4 flex flex-col h-full">
+                <div class="bg-white rounded-lg shadow flex-grow">
                     <div class="p-4 border-b">
                         <h4 class="text-xl font-semibold">Shopping Cart</h4>
                     </div>
-                    <div class="p-4">
+                    <div class="p-4 flex-grow overflow-y-auto" style="max-height: 70vh;">
                         @if(count($cart) > 0)
                             @foreach($cart as $item)
                             <div class="flex justify-between items-center mb-4">
@@ -56,20 +56,41 @@
                                 </div>
                             </div>
                             @endforeach
-                            <hr class="my-4">
-                            <div class="flex justify-between mb-4">
-                                <h5 class="font-semibold">Total:</h5>
-                                <h5 class="font-semibold">Rp {{ number_format($total, 0, ',', '.') }}</h5>
-                            </div>
-                            <button class="w-full px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700" wire:click="checkout">
-                                Proceed to Checkout
-                            </button>
+                            
                         @else
                             <p class="text-center text-gray-600">Your cart is empty</p>
                         @endif
                     </div>
                 </div>
-            </div>
+                <div class="p-4 sticky bottom-0 bg-white">
+                    <hr class="my-4">
+                    <div class="flex flex-col mb-4">
+                        <input 
+                            type="number" 
+                            class="mb-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" 
+                            placeholder="Input Bayar" 
+                            wire:model="inputBayar"
+                        >
+                        <p class="font-semibold">
+                            Kembalian: 
+                            <span class="{{ $kembalian >= 0 ? 'text-green-600' : 'text-red-600' }}">
+                                Rp {{ number_format($kembalian, 0, ',', '.') }}
+                            </span>
+                        </p>
+                        @if ($kembalian < 0)
+                            <p class="text-red-600 text-sm">Uang kurang: Rp {{ number_format(abs($kembalian), 0, ',', '.') }}</p>
+                        @endif
+                    </div>
+                    <div class="flex justify-between mb-4">
+                        <h5 class="font-semibold">Total:</h5>
+                        <h5 class="font-semibold">Rp {{ number_format($total, 0, ',', '.') }}</h5>
+                    </div>
+                    
+                    <button class="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:click="checkout">
+                        Proceed to Checkout
+                    </button>
+                </div>
+            </div>        
         </div>
     </div>
 </div>
