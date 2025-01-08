@@ -102,7 +102,7 @@
                                        accept="image/*">
                                 @if ($gambar && !$errors->has('gambar'))
                                     <img src="{{ $gambar->temporaryUrl() }}" alt="Preview" class="w-32 h-32 object-cover rounded-lg mt-2">
-                                @endif
+                                @endif  
                                 @error('gambar') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                 <div wire:loading wire:target="gambar" class="text-sm text-gray-500 mt-1">Uploading...</div>
                             </div>

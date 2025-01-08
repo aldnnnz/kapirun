@@ -2,7 +2,7 @@
     <div class="p-4 rounded-lg">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <!-- Left Column - Product List -->
-            <div class="lg:col-span-8 overflow-y-auto" style="max-height: 70vh;">
+            <div class="lg:col-span-8 overflow-y-auto" style="max-height: 80vh;">
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-4 border-b">
                         <h4 class="text-xl font-semibold">Products</h4>
@@ -38,7 +38,7 @@
                     <div class="p-4 border-b">
                         <h4 class="text-xl font-semibold">Shopping Cart</h4>
                     </div>
-                    <div class="p-4 flex-grow overflow-y-auto" style="max-height: 70vh;">
+                    <div class="p-4 flex-grow overflow-y-auto" style="max-height: 60vh;">
                         @if(count($cart) > 0)
                             @foreach($cart as $item)
                             <div class="flex justify-between items-center mb-4">
@@ -62,7 +62,7 @@
                         @endif
                     </div>
                 </div>
-                <div class="p-4 sticky bottom-0 bg-white">
+                <div class="p-4 sticky bottom-0 bg-white z-10">
                     <hr class="my-4">
                     <div class="flex flex-col mb-4">
                         <input 
