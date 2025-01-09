@@ -1,5 +1,5 @@
 <div class="flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-white to-gray-100 min-h-screen">
-    <!-- Hero Section -->
+    <!-- Hero Section --> 
     <div class="text-center py-16">
         <h2 class="text-5xl font-extrabold text-gray-800 mb-6">
             Selamat Datang di <span class="text-blue-500">KAPIR POS!</span>

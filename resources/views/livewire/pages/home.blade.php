@@ -1,4 +1,14 @@
 <div>
+@if (session('message'))
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ session('message') }}
+        </div>
+    @endif
+    @if (session('error'))
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
     <div class="p-4 rounded-lg">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
             <!-- Left Column - Product List -->

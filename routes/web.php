@@ -28,4 +28,6 @@ Route::middleware('auth')->group(function() {
 });
 // Middleware untuk tamu (guest)
 
-Route::get('/', App\Livewire\Pages\Landing::class)->name('landing');
+Route::get('/', function () {
+    return view('livewire.pages.landing');
+})->name('landing');
