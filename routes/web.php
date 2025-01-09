@@ -15,11 +15,11 @@ use App\Livewire\Pages\Landing;
 //     return view('welcome');
 // });
 // Route::resource('produk', ProdukController::class);
-Route::middleware(['web', 'guest'])->group(function() {
+
     logger('Rute /login diakses');
     Route::get('/login', App\Livewire\Auth\Login::class)->name('auth.login');
     Route::get('/register', App\Livewire\Auth\Register::class)->name('auth.register');
-});// Route::middleware(EnsureAuthenticated::class)->group(function() {
+// Route::middleware(EnsureAuthenticated::class)->group(function() {
 //     Route::get('/', App\Livewire\Pages\Home::class)->name('pages.home');
 // });
 Route::middleware('auth')->group(function() {

@@ -1,5 +1,16 @@
-<div class="flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-white to-gray-100 min-h-screen">
-    <!-- Hero Section --> 
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', config('app.name', 'Laravel'))</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
+</head>
+<body>
+    <div class="flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 via-white to-gray-100 min-h-screen">
+    <!-- Hero Section -->
     <div class="text-center py-16">
         <h2 class="text-5xl font-extrabold text-gray-800 mb-6">
             Selamat Datang di <span class="text-blue-500">KAPIR POS!</span>
@@ -10,11 +21,11 @@
 
         <!-- Login and Register Buttons -->
         <div class="flex justify-center gap-6 mb-10">
-            <a href="{{ route('auth.login') }}" 
+            <a href="/login" 
                class="px-10 py-3 bg-white text-gray-800 font-semibold rounded-full border border-blue-500 shadow-lg hover:bg-blue-100 hover:shadow-xl transition-all duration-300">
                 Login
             </a>
-            <a href="{{ route('auth.register') }}" 
+            <a href="/register" 
                class="px-10 py-3 bg-white text-gray-800 font-semibold rounded-full border border-blue-500 shadow-lg hover:bg-blue-100 hover:shadow-xl transition-all duration-300">
                 Register
             </a>
@@ -89,3 +100,17 @@
         </a>
     </div>
 </div>
+    
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('product-created', () => {
+                console.log('Product created');
+            });
+            
+            Livewire.on('product-updated', () => {
+                console.log('Product updated');
+            });
+        });
+    </script>
+</body>
+</html>
