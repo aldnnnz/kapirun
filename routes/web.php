@@ -10,6 +10,7 @@ use App\Http\Livewire\Components\Layout;
 use Livewire\Livewire;
 use App\Http\Livewire\Pages\Home;
 use App\Http\Middleware\EnsureAuthenticated;
+use App\Livewire\Pages\Landing;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
@@ -25,3 +26,6 @@ Route::middleware('auth')->group(function() {
     Route::get('/product', App\Livewire\Pages\Product::class)->name('pages.product');
     Route::get('/pos', App\Livewire\Pages\Home::class)->name('pages.home');
 });
+// Middleware untuk tamu (guest)
+
+Route::get('/', App\Livewire\Pages\Landing::class)->name('landing');
