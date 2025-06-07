@@ -43,6 +43,14 @@ class Product extends Component
         'id_kategori' => 'nullable|exists:kategori,id',
         'id_toko' => 'required|exists:toko,id'
     ];
+    protected $listeners = [
+        'categoryAdded' => 'refreshCategories'
+    ];
+
+    public function refreshCategories()
+    {
+        $this->categories = Kategori::where('id_toko', $this->id_toko)->get();
+    }
 
     // Lifecycle Hooks
     public function mount()

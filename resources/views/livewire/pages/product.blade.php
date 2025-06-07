@@ -114,11 +114,13 @@
                                             class="mt-1 block w-full rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Select Category</option>
                                         @foreach($categories as $category)
-                                            <option value="{{ $category->id }}" wire:key="{{ $category->id }}">{{ $category->nama_kategori }}</option>
+                                            <option value="{{ $category->id }}">{{ $category->nama_kategori }}</option>
                                         @endforeach
                                     </select>
                                     @error('id_kategori') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                                     @livewire('components.modal-category', ['id_toko' => auth()->user()->id_toko])
+
+                                    
                                 </div>
                             </div>
 
