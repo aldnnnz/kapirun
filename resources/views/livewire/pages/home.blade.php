@@ -1,5 +1,5 @@
 <div>
-@if (session('message'))
+    @if (session('message'))
         <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
             {{ session('message') }}
         </div>
@@ -26,16 +26,16 @@
                     <div class="p-4">
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             @foreach($products as $product)
-                            <div class="bg-white rounded-lg shadow">
-                                <img src="{{ $product->gambar ? Storage::url($product->gambar) : 'https://via.placeholder.com/150' }}" class="w-full h-40 object-cover rounded-t-lg" alt="{{ $product->nama_produk }}">
-                                <div class="p-4">
-                                    <h6 class="font-semibold">{{ $product->nama_produk }}</h6>
-                                    <p class="text-gray-600">Rp {{ number_format($product->harga, 0, ',', '.') }}</p>
-                                    <button class="w-full mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:click="addToCart({{ $product->id }})">
-                                        Add to Cart
-                                    </button>
+                                <div class="bg-white rounded-lg shadow">
+                                    <img src="{{ $product->gambar ? Storage::url($product->gambar) : 'https://via.placeholder.com/150' }}" class="w-full h-40 object-cover rounded-t-lg" alt="{{ $product->nama_produk }}">
+                                    <div class="p-4">
+                                        <h6 class="font-semibold">{{ $product->nama_produk }}</h6>
+                                        <p class="text-gray-600">Rp {{ number_format($product->harga, 0, ',', '.') }}</p>
+                                        <button class="w-full mt-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:click="addToCart({{ $product->id }})">
+                                            Add to Cart
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
                             @endforeach
                         </div>
                     </div>
@@ -51,22 +51,21 @@
                     <div class="p-4 flex-grow overflow-y-auto" style="max-height: 60vh;">
                         @if(count($cart) > 0)
                             @foreach($cart as $item)
-                            <div class="flex justify-between items-center mb-4">
-                                <div>
-                                    <h6 class="font-semibold">{{ $item['nama_produk'] }}</h6>
-                                    <small class="text-gray-600">Rp {{ number_format($item['harga'], 0, ',', '.') }}</small>
+                                <div class="flex justify-between items-center mb-4">
+                                    <div>
+                                        <h6 class="font-semibold">{{ $item['nama_produk'] }}</h6>
+                                        <small class="text-gray-600">Rp {{ number_format($item['harga'], 0, ',', '.') }}</small>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <button class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" wire:click="decrementQuantity({{ $item['id'] }})">-</button>
+                                        <span>{{ $item['quantity'] }}</span>
+                                        <button class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" wire:click="incrementQuantity({{ $item['id'] }})">+</button>
+                                        <button class="p-1 text-red-600 hover:text-red-800" wire:click="removeFromCart({{ $item['id'] }})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <button class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" wire:click="decrementQuantity({{ $item['id'] }})">-</button>
-                                    <span>{{ $item['quantity'] }}</span>
-                                    <button class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300" wire:click="incrementQuantity({{ $item['id'] }})">+</button>
-                                    <button class="p-1 text-red-600 hover:text-red-800" wire:click="removeFromCart({{ $item['id'] }})">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
                             @endforeach
-                            
                         @else
                             <p class="text-center text-gray-600">Your cart is empty</p>
                         @endif
@@ -78,24 +77,27 @@
                         <input 
                             type="number" 
                             class="mb-2 rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" 
-                            placeholder="Input Bayar" 
-                            wire:model="inputBayar"
+                            placeholder="Masukkan jumlah pembayaran" 
+                            wire:model.blur="inputBayar"
+                            min="0"
+                            step="100"
                         >
                         <p class="font-semibold">
                             Kembalian: 
                             <span class="{{ $kembalian >= 0 ? 'text-green-600' : 'text-red-600' }}">
-                                Rp {{ number_format($kembalian, 0, ',', '.') }}
+                                Rp {{ number_format(abs($kembalian), 0, ',', '.') }}
                             </span>
                         </p>
-                        @if ($kembalian < 0)
-                            <p class="text-red-600 text-sm">Uang kurang: Rp {{ number_format(abs($kembalian), 0, ',', '.') }}</p>
+                        @if (!empty($inputBayar) && $kembalian < 0)
+                            <p class="text-red-600 text-sm">
+                                Uang kurang: Rp {{ number_format(abs($kembalian), 0, ',', '.') }}
+                            </p>
                         @endif
                     </div>
                     <div class="flex justify-between mb-4">
                         <h5 class="font-semibold">Total:</h5>
                         <h5 class="font-semibold">Rp {{ number_format($total, 0, ',', '.') }}</h5>
                     </div>
-                    
                     <button class="w-full px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700" wire:click="checkout">
                         Proceed to Checkout
                     </button>

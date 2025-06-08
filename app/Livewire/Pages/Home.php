@@ -15,7 +15,7 @@ class Home extends Component
     public $cart = [];
     public $total = 0;
     public $search = '';
-    public $inputBayar = 0;
+    public $inputBayar = '';
     public $kembalian = 0; // Properti untuk menyimpan nilai kembalian
 
     public function mount()
@@ -100,27 +100,42 @@ class Home extends Component
         }
     }
 
-    protected function calculateTotal()
+   protected function calculateTotal()
     {
-        $this->total = collect($this->cart)->sum(function ($item) {
-            return $item['harga'] * $item['quantity'];
+        $this->total = (float) collect($this->cart)->sum(function ($item) {
+            return (float) $item['harga'] * (int) $item['quantity'];
         });
-    
-        // Hitung ulang kembalian setelah total diupdate
-        $this->kembalian = max(0, $this->inputBayar - $this->total);
+
+        // Hitung kembalian hanya jika inputBayar ada
+        if (!empty($this->inputBayar)) {
+            $this->kembalian = (float) $this->inputBayar - $this->total;
+        }
     }
     
     public function updatedInputBayar($value)
     {
-        // Hitung kembalian setiap kali inputBayar diubah
-        $this->kembalian = max(0, $this->inputBayar - $this->total);
+        // Jika input kosong, set kembalian ke 0
+        if ($value === '') {
+            $this->kembalian = 0;
+            return;
+        }
+
+        // Pastikan value adalah numeric
+        if (!is_numeric($value)) {
+            return;
+        }
+
+        // Convert ke float setelah validasi
+        $this->inputBayar = (float) $value;
+        $this->kembalian = $this->inputBayar - $this->total;
     }
-    
-    public function updatedTotal($value)
+    public function updatedTotal($value) 
     {
-        // Hitung kembalian setiap kali total diubah
+        // Convert input to float before calculation
+        $this->total = (float) $value;
         $this->kembalian = max(0, $this->inputBayar - $this->total);
     }
+
 
     public function checkout()
     {
